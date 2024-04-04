@@ -1,1 +1,42 @@
-#!/bin/sh
+#!/usr/bin/env python
+
+import requests
+from sys import argv
+from logging import getLogger, Logger, StreamHandler, INFO
+from requests.sessions import Session
+from requests.adapters import HTTPAdapter, Retry
+from json import loads, dumps
+
+from typing import Dict, List, Any
+
+logger: Logger = getLogger()
+logger.propagate = True
+logger.addHandler(StreamHandler())
+logger.setLevel(INFO)
+
+
+def create_requests_session(headers: Dict[str, str] = dict()) -> Session:
+    session: Session = requests.session()
+    session.headers.update(headers)
+    retry = Retry(total=10, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount(f"http", adapter)
+    return session
+
+
+def get_input_data() -> Dict[str, Any]:
+    return loads(input())
+
+
+def main() -> None:
+    source_data: Dict[str, Any] = get_input_data()
+    logger.info(dumps(source_data, indent=2))
+    output_dir: str = argv[1]
+    logger.info(f"OUTPUT_DIR: {output_dir}")
+    # requests_session: Session = create_requests_session(
+    #     {"Authorization": f"Bearer {source_data['source']['artifactory_token']}"}
+    # )
+
+
+if __name__ == "__main__":
+    main()
