@@ -42,7 +42,10 @@ def main() -> None:
         release["uri"]
         for release in filter(lambda r: not r["folder"], response_data["children"])
     ]
-    current_version: str = source_data["version"]["uri"]
+    try:
+        current_version: str = source_data["version"]["uri"]
+    except KeyError as _:
+        current_version: str = str()
     if current_version == versions[-1]:
         print(dumps([{"uri": current_version}]))
     else:
