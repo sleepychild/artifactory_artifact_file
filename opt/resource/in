@@ -54,9 +54,9 @@ def main() -> None:
     logger.debug(
         dumps(
             {
-                "version": source_data["version"][
-                    "uri"
-                ]  # , "metadata": [{"name": item[0], "value": item[1]} for item in response_data.items()],
+                "version": {
+                    "uri": source_data["version"]["uri"]
+                }  # , "metadata": [{"name": item[0], "value": item[1]} for item in response_data.items()],
             },
             indent=2,
         )
@@ -64,9 +64,9 @@ def main() -> None:
     print(
         dumps(
             {
-                "version": source_data["version"][
-                    "uri"
-                ]  # , "metadata": [{"name": item[0], "value": item[1]} for item in response_data.items()],
+                "version": {
+                    "uri": source_data["version"]["uri"]
+                }  # , "metadata": [{"name": item[0], "value": item[1]} for item in response_data.items()],
             }
         )
     )
