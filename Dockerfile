@@ -8,4 +8,4 @@ RUN apk add jq curl
 RUN curl -fL https://install-cli.jfrog.io | sh
 ENV CI=true
 
-ADD opt .
+ADD opt/resource /opt/resource
