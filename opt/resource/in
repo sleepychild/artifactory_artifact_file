@@ -2,17 +2,17 @@
 
 import requests
 from sys import argv
-from logging import getLogger, Logger, StreamHandler, INFO
+from logging import getLogger, Logger, StreamHandler, DEBUG
 from requests.sessions import Session
 from requests.adapters import HTTPAdapter, Retry
 from json import loads, dumps
 
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 logger: Logger = getLogger()
 logger.propagate = True
 logger.addHandler(StreamHandler())
-logger.setLevel(INFO)
+logger.setLevel(DEBUG)
 
 
 def create_requests_session(headers: Dict[str, str] = dict()) -> Session:
@@ -33,9 +33,35 @@ def main() -> None:
     logger.info(dumps(source_data, indent=2))
     output_dir: str = argv[1]
     logger.info(f"OUTPUT_DIR: {output_dir}")
-    # requests_session: Session = create_requests_session(
-    #     {"Authorization": f"Bearer {source_data['source']['artifactory_token']}"}
-    # )
+    requests_session: Session = create_requests_session(
+        {"Authorization": f"Bearer {source_data['source']['artifactory_token']}"}
+    )
+    response = requests_session.get(
+        f"{source_data['source']['artifactory_url']}/artifactory/api/storage/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}{source_data['version']['uri']}"
+    )
+    response_data: Dict[str, Any] = response.json()
+    logger.info(dumps(response_data, indent=2))
+    download_url: str = response_data["downloadUri"]
+    file_name: str = download_url.split("/")[-1]
+    with requests_session.get(download_url, stream=True) as dl:
+        dl.raise_for_status()
+        with open(f"{output_dir}/{file_name}", "wb") as f:
+            for chunk in dl.iter_content():
+                if chunk:
+                    f.write(chunk)
+
+    print(
+        dumps(
+            {
+                "version": source_data["version"]["uri"],
+                "metadata": [
+                    {"name": item[0], "value": item[1]}
+                    for item in response_data.items()
+                ],
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":
