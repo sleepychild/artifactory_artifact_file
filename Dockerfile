@@ -1,8 +1,7 @@
 FROM alpine:latest
 
 RUN apk update && apk upgrade 
-RUN apk add python3 py3-pip
-RUN pip install requests
+RUN apk add python3 py3-pip py3-requests
 
 # The bash and jq / jf route
 RUN apk add jq curl
