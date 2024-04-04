@@ -11,7 +11,7 @@ from typing import Dict, List, Any
 logger: Logger = getLogger()
 logger.propagate = True
 logger.addHandler(StreamHandler())
-logger.setLevel(DEBUG)
+# logger.setLevel(DEBUG)
 
 
 def create_requests_session(headers: Dict[str, str] = dict()) -> Session:
