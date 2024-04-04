@@ -51,14 +51,15 @@ def main() -> None:
     #                 f.write(chunk)
     with open(f"{output_dir}/{file_name}", "tw") as f:
         f.write(dumps(response_data, indent=2))
+
+    del response_data["checksums"]
+    del response_data["originalChecksums"]
     return_data: Dict[str, Any] = {
         "version": {"uri": source_data["version"]["uri"]},
         "metadata": [
             {"name": item[0], "value": item[1]} for item in response_data.items()
         ],
     }
-    del return_data["metadata"]["checksums"]
-    del return_data["metadata"]["originalChecksums"]
     logger.debug(
         dumps(
             return_data,
