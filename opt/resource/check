@@ -1,7 +1,42 @@
 #!/usr/bin/env python
 
+import requests
+from requests.sessions import Session
+from requests.adapters import HTTPAdapter, Retry
 from json import loads, dumps
 
-source = loads(input())
+from typing import Dict, List, Any
 
-print(dumps([0, 1, 2]))
+
+def create_requests_session(headers: Dict[str, str] = dict()) -> Session:
+    session: Session = requests.session()
+    session.headers.update(headers)
+    retry = Retry(total=10, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount(f"http", adapter)
+    return session
+
+
+def main() -> None:
+    raw_input: str = input()
+    source_data: Dict[str, Any] = loads(raw_input)
+    requests_session: Session = create_requests_session(
+        {"Authorization": f"Bearer {source_data['source']['artifactory_token']}"}
+    )
+    response = requests_session.get(
+        f"{source_data['source']['artifactory_url']}/artifactory/api/storage/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}"
+    )
+    response_data: Dict[str, Any] = response.json()
+    versions: List[str] = [
+        release["uri"]
+        for release in filter(lambda r: not r["folder"], response_data["children"])
+    ]
+    current_version: str = source_data["version"]["uri"]
+    if current_version == versions[-1]:
+        print(dumps([{"uri": current_version}]))
+    else:
+        print(dumps([{"uri": version} for version in versions]))
+
+
+if __name__ == "__main__":
+    main()
