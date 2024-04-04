@@ -1,1 +1,5 @@
 #!/bin/sh
+
+read source_data
+
+echo $source_data
