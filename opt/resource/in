@@ -43,15 +43,12 @@ def main() -> None:
     logger.debug(dumps(response_data, indent=2))
     download_url: str = response_data["downloadUri"]
     file_name: str = download_url.split("/")[-1]
-    # with requests_session.get(download_url, stream=True) as dl:
-    #     dl.raise_for_status()
-    #     with open(f"{output_dir}/{file_name}", "wb") as f:
-    #         for chunk in dl.iter_content():
-    #             if chunk:
-    #                 f.write(chunk)
-    with open(f"{output_dir}/{file_name}", "tw") as f:
-        f.write(dumps(response_data, indent=2))
-
+    with requests_session.get(download_url, stream=True) as dl:
+        dl.raise_for_status()
+        with open(f"{output_dir}/{file_name}", "wb") as f:
+            for chunk in dl.iter_content():
+                if chunk:
+                    f.write(chunk)
     del response_data["checksums"]
     del response_data["originalChecksums"]
     return_data: Dict[str, Any] = {
