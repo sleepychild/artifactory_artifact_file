@@ -1,5 +1,7 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-read source_data
+from json import loads, dumps
 
-echo $source_data
+source = loads(input())
+
+print(dumps([0, 1, 2]))
