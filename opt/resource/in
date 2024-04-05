@@ -5,7 +5,7 @@ from sys import argv
 from logging import getLogger, Logger, StreamHandler, DEBUG
 from requests.sessions import Session
 from requests.adapters import HTTPAdapter, Retry
-from json import loads, dumps
+from json import loads, dumps, dump
 
 from typing import Dict, Any
 
@@ -40,6 +40,8 @@ def main() -> None:
         f"{source_data['source']['artifactory_url']}/artifactory/api/storage/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}{source_data['version']['uri']}"
     )
     response_data: Dict[str, Any] = response.json()
+    with open(f"{output_dir}/metadata.json", "tw") as mf:
+        dump(response_data, mf, indent=2)
     logger.debug(dumps(response_data, indent=2))
     download_url: str = response_data["downloadUri"]
     file_name: str = download_url.split("/")[-1]
