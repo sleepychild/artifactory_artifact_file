@@ -43,7 +43,11 @@ def get_input_data() -> Dict[str, Any]:
 def main() -> None:
     source_data: Dict[str, Any] = get_input_data()
     logger.debug(dumps(source_data, indent=2))
-    dry_run: bool = source_data["dry_run"] if "dry_run" in source_data.keys() else False
+    dry_run: bool = (
+        source_data["source"]["dry_run"]
+        if "dry_run" in source_data["source"].keys()
+        else False
+    )
     output_dir: str = argv[1]
     logger.debug(f"OUTPUT_DIR: {output_dir}")
     requests_session: Session = create_requests_session(
