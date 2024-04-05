@@ -2,6 +2,7 @@
 
 import requests
 from sys import argv
+from os.path import join
 from logging import getLogger, Logger, StreamHandler, DEBUG
 from requests.sessions import Session
 from requests.adapters import HTTPAdapter, Retry
@@ -24,12 +25,24 @@ def create_requests_session(headers: Dict[str, str] = dict()) -> Session:
     return session
 
 
+def download_file(
+    requests_session: Session, download_url: str, download_destination_path: str
+) -> None:
+    with requests_session.get(download_url, stream=True) as dl:
+        dl.raise_for_status()
+        with open(download_destination_path, "wb") as f:
+            for chunk in dl.iter_content():
+                if chunk:
+                    f.write(chunk)
+
+
 def get_input_data() -> Dict[str, Any]:
     return loads(input())
 
 
 def main() -> None:
     source_data: Dict[str, Any] = get_input_data()
+    dry_run: bool = source_data["dry_run"] if "dry_run" in source_data.keys() else False
     logger.debug(dumps(source_data, indent=2))
     output_dir: str = argv[1]
     logger.debug(f"OUTPUT_DIR: {output_dir}")
@@ -45,12 +58,8 @@ def main() -> None:
     logger.debug(dumps(response_data, indent=2))
     download_url: str = response_data["downloadUri"]
     file_name: str = download_url.split("/")[-1]
-    with requests_session.get(download_url, stream=True) as dl:
-        dl.raise_for_status()
-        with open(f"{output_dir}/{file_name}", "wb") as f:
-            for chunk in dl.iter_content():
-                if chunk:
-                    f.write(chunk)
+    if not dry_run:
+        download_file(requests_session, download_url, join(output_dir, file_name))
     del response_data["checksums"]
     del response_data["originalChecksums"]
     return_data: Dict[str, Any] = {
