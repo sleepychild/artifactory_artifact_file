@@ -3,7 +3,6 @@
 import requests
 from sys import argv
 from os.path import join
-from os import environ
 from logging import getLogger, Logger, StreamHandler, DEBUG
 from requests.sessions import Session
 from requests.adapters import HTTPAdapter, Retry
@@ -14,7 +13,6 @@ from typing import Dict, Any
 logger: Logger = getLogger()
 logger.propagate = True
 logger.addHandler(StreamHandler())
-logger.setLevel(environ.get("log_level", "INFO"))
 
 
 def create_requests_session(headers: Dict[str, str] = dict()) -> Session:
@@ -37,12 +35,13 @@ def download_file(
                     f.write(chunk)
 
 
-def get_input_data() -> Dict[str, Any]:
-    return loads(input())
-
-
 def main() -> None:
-    source_data: Dict[str, Any] = get_input_data()
+    source_data: Dict[str, Any] = loads(input())
+    logger.setLevel(
+        source_data["source"]["log_level"]
+        if "log_level" in source_data["source"].keys()
+        else "INFO"
+    )
     logger.debug(dumps(source_data, indent=2))
     dry_run: bool = (
         source_data["source"]["dry_run"]
