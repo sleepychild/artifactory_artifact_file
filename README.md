@@ -22,6 +22,7 @@ resources:
       artifactory_repo: ((artifactory_repo))
       artifactory_path: ((artifactory/path))
       artifactory_token: ((artifactory_token))
+      log_level: ((log_level)) # OPTIONAL
       dry_run: ((dry_run)) # OPTIONAL
 jobs:
   - name: check_file
