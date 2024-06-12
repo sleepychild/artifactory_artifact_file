@@ -10,7 +10,7 @@ from requests.sessions import Session
 from requests.adapters import HTTPAdapter, Retry
 from json import loads, dumps, dump
 
-from typing import Dict, Any
+from typing import List, Dict, Any
 
 logger: Logger = getLogger()
 logger.propagate = True
@@ -35,19 +35,37 @@ def main() -> None:
     )
     logger.debug(dumps(source_data, indent=2))
     logger.debug(dumps(argv, indent=2))
-    logger.debug(dumps(listdir(argv[1])))
+
+    files_path: str = join(argv[1], source_data["params"]["file_path"])
+    files_to_upload: List[str] = list(
+        filter(
+            lambda f: f.split(".")[-1].casefold()
+            == source_data["params"]["file_type"].casefold(),
+            listdir(files_path),
+        )
+    )
 
     # application/octet-stream
     # application/x-binary
 
-    # requests_session: Session = create_requests_session(
-    #     {"Authorization": f"Bearer {source_data['source']['artifactory_token']}",
-    #     "Content-Type": "application/x-binary"}
-    # )
+    requests_session: Session = create_requests_session(
+        {
+            "Authorization": f"Bearer {source_data['source']['artifactory_token']}",
+            "Content-Type": "application/x-binary",
+        }
+    )
 
-    # response: Response = requests_session.put(
-    #     f"{source_data['source']['artifactory_url']}/artifactory/api/storage/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_name}"
-    # )
+    for file_to_upload in files_to_upload:
+        print(join(files_path, file_to_upload))
+
+        response: Response = requests_session.put(
+            f"{source_data['source']['artifactory_url']}/artifactory/api/storage/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_to_upload}",
+            data=open(join(files_path, file_to_upload), "rb"),
+        )
+
+        logger.debug(response.status_code)
+        logger.debug(response.content)
+        logger.debug(response.text)
 
     response_data: Dict[str, Any] = dict()
     return_data: Dict[str, Any] = {
