@@ -2,6 +2,7 @@
 
 import requests
 from sys import argv
+from os import scandir
 from os.path import join
 from logging import getLogger, Logger, StreamHandler, DEBUG
 from requests.sessions import Session
@@ -32,7 +33,10 @@ def main() -> None:
         else "INFO"
     )
     logger.debug(dumps(source_data, indent=2))
-    logger.debug(dumps(argv, indent=2))
+    for path_arg in argv:
+        logger.debug(path_arg)
+        for element in scandir(path_arg):
+            logger.debug(f" - {element}")
 
     # requests_session: Session = create_requests_session(
     #     {"Authorization": f"Bearer {source_data['source']['artifactory_token']}"}
