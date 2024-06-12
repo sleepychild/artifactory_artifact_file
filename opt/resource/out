@@ -5,6 +5,7 @@ from sys import argv
 from os import listdir
 from os.path import join
 from logging import getLogger, Logger, StreamHandler, DEBUG
+from requests import Response
 from requests.sessions import Session
 from requests.adapters import HTTPAdapter, Retry
 from json import loads, dumps, dump
@@ -36,13 +37,21 @@ def main() -> None:
     logger.debug(dumps(argv, indent=2))
     logger.debug(dumps(listdir(argv[1])))
 
+    # application/octet-stream
+    # application/x-binary
+
     # requests_session: Session = create_requests_session(
-    #     {"Authorization": f"Bearer {source_data['source']['artifactory_token']}"}
+    #     {"Authorization": f"Bearer {source_data['source']['artifactory_token']}",
+    #     "Content-Type": "application/x-binary"}
+    # )
+
+    # response: Response = requests_session.put(
+    #     f"{source_data['source']['artifactory_url']}/artifactory/api/storage/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_name}"
     # )
 
     response_data: Dict[str, Any] = dict()
     return_data: Dict[str, Any] = {
-        "version": {"uri": "filename"},
+        "version": {"uri": f"/file_name"},
         "metadata": [
             {"name": item[0], "value": item[1]} for item in response_data.items()
         ],
