@@ -2,7 +2,7 @@
 
 import requests
 from sys import argv
-from os import scandir
+from os import listdir
 from os.path import join
 from logging import getLogger, Logger, StreamHandler, DEBUG
 from requests.sessions import Session
@@ -34,6 +34,7 @@ def main() -> None:
     )
     logger.debug(dumps(source_data, indent=2))
     logger.debug(dumps(argv, indent=2))
+    logger.debug(dumps(listdir(argv[1])))
 
     # requests_session: Session = create_requests_session(
     #     {"Authorization": f"Bearer {source_data['source']['artifactory_token']}"}
@@ -41,7 +42,7 @@ def main() -> None:
 
     response_data: Dict[str, Any] = dict()
     return_data: Dict[str, Any] = {
-        "version": {"uri": source_data["version"]["uri"]},
+        "version": {"uri": "filename"},
         "metadata": [
             {"name": item[0], "value": item[1]} for item in response_data.items()
         ],
