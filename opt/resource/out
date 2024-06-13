@@ -38,40 +38,40 @@ def main() -> None:
     logger.debug(dumps(argv, indent=2))
 
     files_path: str = join(argv[1], source_data["params"]["file_path"])
-    files_to_upload: List[str] = list(
+    files_list: List[str] = listdir(files_path)
+    file_to_upload: str = list(
         filter(
             lambda f: f.split(".")[-1].casefold()
             == source_data["params"]["file_type"].casefold(),
-            listdir(files_path),
+            files_list,
         )
+    )[0]
+
+    file_path: str = join(files_path, file_to_upload)
+
+    # application/octet-stream
+    # application/x-binary
+    requests_session: Session = create_requests_session(
+        {
+            "Authorization": f"Bearer {source_data['source']['artifactory_token']}",
+            "Content-Type": "application/json",
+            "X-Checksum-Md5": md5(open(file_path, "rb").read()).hexdigest(),
+            "X-Checksum-Sha1": sha1(open(file_path, "rb").read()).hexdigest(),
+        }
     )
 
-    for file_to_upload in files_to_upload:
-        file_path: str = join(files_path, file_to_upload)
-
-        # application/octet-stream
-        # application/x-binary
-        requests_session: Session = create_requests_session(
-            {
-                "Authorization": f"Bearer {source_data['source']['artifactory_token']}",
-                "Content-Type": "application/json",
-                "X-Checksum-Md5": md5(open(file_path, "rb").read()).hexdigest(),
-                "X-Checksum-Sha1": sha1(open(file_path, "rb").read()).hexdigest(),
-            }
+    with open(file_path, "rb") as fp:
+        response: Response = requests_session.put(
+            # f"{source_data['source']['artifactory_url']}/artifactory/api/storage/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_to_upload}",
+            f"{source_data['source']['artifactory_url']}/artifactory/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_to_upload}",
+            data=fp,
         )
-
-        with open(file_path, "rb") as fp:
-            response: Response = requests_session.put(
-                # f"{source_data['source']['artifactory_url']}/artifactory/api/storage/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_to_upload}",
-                f"{source_data['source']['artifactory_url']}/artifactory/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_to_upload}",
-                data=fp,
-            )
 
     response_data: Dict[str, Any] = response.json()
     del response_data["checksums"]
     del response_data["originalChecksums"]
     return_data: Dict[str, Any] = {
-        "version": {"uri": f"/file_name"},
+        "version": {"uri": f"/{file_to_upload}"},
         "metadata": [
             {"name": item[0], "value": item[1]} for item in response_data.items()
         ],
