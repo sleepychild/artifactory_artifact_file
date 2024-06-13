@@ -46,9 +46,6 @@ def main() -> None:
         )
     )
 
-    print(files_path)
-    print(files_to_upload)
-
     for file_to_upload in files_to_upload:
         file_path: str = join(files_path, file_to_upload)
 
@@ -69,10 +66,6 @@ def main() -> None:
                 f"{source_data['source']['artifactory_url']}/artifactory/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_to_upload}",
                 data=fp,
             )
-
-        print(response.status_code)
-        print(response.content)
-        print(response.text)
 
     response_data: Dict[str, Any] = response.json()
     return_data: Dict[str, Any] = {
