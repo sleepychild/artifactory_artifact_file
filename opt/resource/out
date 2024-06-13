@@ -68,13 +68,14 @@ def main() -> None:
             )
 
     response_data: Dict[str, Any] = response.json()
+    del response_data["checksums"]
+    del response_data["originalChecksums"]
     return_data: Dict[str, Any] = {
         "version": {"uri": f"/file_name"},
         "metadata": [
             {"name": item[0], "value": item[1]} for item in response_data.items()
         ],
     }
-
     logger.debug(
         dumps(
             return_data,
