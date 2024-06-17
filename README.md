@@ -27,22 +27,22 @@ resources:
 jobs:
   - name: check_file
     plan:
-    - get: example_resource_name
-      trigger: true
-    - task: check_file
-      config:
-        platform: linux
-        image_resource:
-          type: registry-image
-          source:
-            repository: alpine
-        inputs:
-          - name: example_resource_name
-        run:
-          path: ls
-          args: 
-            - -alh
-            - example_resource_name
+      - get: example_resource_name
+        trigger: true
+      - task: check_file
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: alpine
+          inputs:
+            - name: example_resource_name
+          run:
+            path: ls
+            args:
+              - -alh
+              - example_resource_name
 ```
 
 ## Params
@@ -68,3 +68,18 @@ This is your artifactory access token. This is the `Authorization: Bearer <TOKEN
 ### dry_run (optional)
 
 If you just want to check for a new file and get the metadata without downloading.
+
+## PUT
+
+```yaml
+- name: job_name
+  plan:
+    - get: some_resource
+      trigger: true
+    - put: ar_nessus_binary
+      inputs:
+        - some_resource
+      params:
+        file_path: some_resource # pass the path to the file to upload
+        file_type: txt # the extensions of the file to upload
+```
