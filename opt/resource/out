@@ -1,1 +1,88 @@
-#!/bin/sh
+#!/usr/bin/env python
+
+import requests
+from sys import argv
+from os import listdir
+from os.path import join
+from logging import getLogger, Logger, StreamHandler
+from requests import Response
+from requests.sessions import Session
+from requests.adapters import HTTPAdapter, Retry
+from json import loads, dumps
+from hashlib import md5, sha1
+
+from typing import List, Dict, Any
+
+logger: Logger = getLogger()
+logger.propagate = True
+logger.addHandler(StreamHandler())
+
+
+def create_requests_session(headers: Dict[str, str] = dict()) -> Session:
+    session: Session = requests.session()
+    session.headers.update(headers)
+    retry = Retry(total=10, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount(f"http", adapter)
+    return session
+
+
+def main() -> None:
+    source_data: Dict[str, Any] = loads(input())
+    logger.setLevel(
+        source_data["source"]["log_level"]
+        if "log_level" in source_data["source"].keys()
+        else "INFO"
+    )
+    logger.debug(dumps(source_data, indent=2))
+    logger.debug(dumps(argv, indent=2))
+
+    files_path: str = join(argv[1], source_data["params"]["file_path"])
+    files_list: List[str] = listdir(files_path)
+    file_to_upload: str = list(
+        filter(
+            lambda f: f.split(".")[-1].casefold()
+            == source_data["params"]["file_type"].casefold(),
+            files_list,
+        )
+    )[0]
+
+    file_path: str = join(files_path, file_to_upload)
+
+    # application/octet-stream
+    # application/x-binary
+    requests_session: Session = create_requests_session(
+        {
+            "Authorization": f"Bearer {source_data['source']['artifactory_token']}",
+            "Content-Type": "application/json",
+            "X-Checksum-Md5": md5(open(file_path, "rb").read()).hexdigest(),
+            "X-Checksum-Sha1": sha1(open(file_path, "rb").read()).hexdigest(),
+        }
+    )
+
+    with open(file_path, "rb") as fp:
+        response: Response = requests_session.put(
+            f"{source_data['source']['artifactory_url']}/artifactory/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_to_upload}",
+            data=fp,
+        )
+
+    response_data: Dict[str, Any] = response.json()
+    del response_data["checksums"]
+    del response_data["originalChecksums"]
+    return_data: Dict[str, Any] = {
+        "version": {"uri": f"/{file_to_upload}"},
+        "metadata": [
+            {"name": item[0], "value": item[1]} for item in response_data.items()
+        ],
+    }
+    logger.debug(
+        dumps(
+            return_data,
+            indent=2,
+        )
+    )
+    print(dumps(return_data))
+
+
+if __name__ == "__main__":
+    main()
