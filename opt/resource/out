@@ -4,7 +4,7 @@ import requests
 from sys import argv
 from os import listdir
 from os.path import join
-from logging import getLogger, Logger, StreamHandler, DEBUG
+from logging import getLogger, Logger, StreamHandler
 from requests import Response
 from requests.sessions import Session
 from requests.adapters import HTTPAdapter, Retry
@@ -62,7 +62,6 @@ def main() -> None:
 
     with open(file_path, "rb") as fp:
         response: Response = requests_session.put(
-            # f"{source_data['source']['artifactory_url']}/artifactory/api/storage/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_to_upload}",
             f"{source_data['source']['artifactory_url']}/artifactory/{source_data['source']['artifactory_repo']}/{source_data['source']['artifactory_path']}/{file_to_upload}",
             data=fp,
         )
